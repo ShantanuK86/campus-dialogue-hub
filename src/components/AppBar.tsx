@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { LogIn, LogOut, UserPlus } from "lucide-react";
+import { LogIn, LogOut, UserPlus, Mail, Github } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const AppBar = () => {
@@ -23,7 +23,26 @@ export const AppBar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogin = async () => {
+  const handleEmailLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: prompt('Please enter your email:') || '',
+    });
+    
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing in",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign in.",
+      });
+    }
+  };
+
+  const handleGithubLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
     });
@@ -38,8 +57,11 @@ export const AppBar = () => {
   };
 
   const handleSignUp = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
+    const email = prompt('Please enter your email to sign up:');
+    if (!email) return;
+    
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
     });
     
     if (error) {
@@ -47,6 +69,11 @@ export const AppBar = () => {
         variant: "destructive",
         title: "Error signing up",
         description: error.message,
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign up.",
       });
     }
   };
@@ -75,10 +102,18 @@ export const AppBar = () => {
               <Button
                 variant="ghost"
                 className="flex items-center gap-2"
-                onClick={handleLogin}
+                onClick={handleEmailLogin}
               >
-                <LogIn className="h-4 w-4" />
-                Login
+                <Mail className="h-4 w-4" />
+                Email Login
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2"
+                onClick={handleGithubLogin}
+              >
+                <Github className="h-4 w-4" />
+                GitHub Login
               </Button>
               <Button
                 variant="ghost"
