@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
@@ -22,15 +22,6 @@ export const Comments = ({ postId }: CommentsProps) => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
 
-  useState(() => {
-    // Get initial comments
-    fetchComments();
-    // Get user session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-  });
-
   const fetchComments = async () => {
     const { data, error } = await supabase
       .from("comments")
@@ -49,6 +40,15 @@ export const Comments = ({ postId }: CommentsProps) => {
 
     setComments(data || []);
   };
+
+  useEffect(() => {
+    // Get initial comments
+    fetchComments();
+    // Get user session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+  }, []);
 
   const handleSubmitComment = async () => {
     if (!user) {
