@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, MessageSquare } from "lucide-react";
+import { Comments } from "./Comments";
 
 export interface PostCardProps {
   title: string;
@@ -47,7 +48,7 @@ export const PostCard = ({
           <p className="text-gray-600 line-clamp-2">{preview}</p>
         </div>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">{votes} votes</span>
           <span className="flex items-center gap-1 text-sm text-gray-500">
@@ -63,6 +64,16 @@ export const PostCard = ({
           <span className="text-sm font-medium">{author}</span>
         </div>
       </div>
+      {tags && tags.length > 0 && (
+        <div className="flex gap-2 mb-6">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+      <Comments postId={title} />
     </Card>
   );
 };
