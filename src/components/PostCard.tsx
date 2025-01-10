@@ -11,6 +11,7 @@ interface PostCardProps {
   role: "student" | "teacher" | "admin";
   timestamp: string;
   trending?: boolean;
+  tags?: string[];
 }
 
 export const PostCard = ({
@@ -22,6 +23,7 @@ export const PostCard = ({
   role,
   timestamp,
   trending,
+  tags,
 }: PostCardProps) => {
   const roleColors = {
     student: "bg-blue-100 text-blue-800",
