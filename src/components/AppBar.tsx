@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { LogIn, LogOut, UserPlus, User } from "lucide-react";
+import { LogIn, LogOut, UserPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import type { User } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const AppBar = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,7 +92,6 @@ export const AppBar = () => {
           ) : (
             <>
               <Button variant="outline" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
                 {user.email}
               </Button>
               <Button
