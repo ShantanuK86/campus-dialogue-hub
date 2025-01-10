@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, MessageSquare } from "lucide-react";
 
-interface PostCardProps {
+export interface PostCardProps {
   title: string;
   preview: string;
   votes: number;
@@ -11,7 +11,7 @@ interface PostCardProps {
   role: "student" | "teacher" | "admin";
   timestamp: string;
   trending?: boolean;
-  tags?: string[];
+  tags?: readonly string[] | string[];
 }
 
 export const PostCard = ({

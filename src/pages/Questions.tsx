@@ -11,9 +11,9 @@ const QUESTIONS = [
     votes: 45,
     answers: 12,
     author: "John Doe",
-    role: "student",
+    role: "student" as const,
     timestamp: "2h ago",
-    tags: ["computer-science", "algorithms", "finals"],
+    tags: ["computer-science", "algorithms", "finals"] as string[],
   },
   {
     title: "Best practices for research paper citations",
@@ -21,11 +21,11 @@ const QUESTIONS = [
     votes: 38,
     answers: 8,
     author: "Dr. Smith",
-    role: "teacher",
+    role: "teacher" as const,
     timestamp: "4h ago",
-    tags: ["research", "writing", "citations"],
+    tags: ["research", "writing", "citations"] as string[],
   },
-] as const;
+];
 
 const Questions = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,9 +47,7 @@ const Questions = () => {
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tag)
-        ? prev.filter((t) => t !== tag)
-        : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
