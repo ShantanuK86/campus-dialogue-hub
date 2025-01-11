@@ -6,6 +6,7 @@ import { Search, Tag } from "lucide-react";
 
 const QUESTIONS = [
   {
+    id: "5", // Add ID
     title: "How to effectively prepare for Computer Science finals?",
     preview: "I'm struggling with algorithm complexity and data structures...",
     votes: 45,
@@ -16,6 +17,7 @@ const QUESTIONS = [
     tags: ["computer-science", "algorithms", "finals"] as string[],
   },
   {
+    id: "6", // Add ID
     title: "Best practices for research paper citations",
     preview: "Looking for guidance on APA format and academic writing...",
     votes: 38,
@@ -79,7 +81,7 @@ const Questions = () => {
       </div>
       <div className="space-y-6">
         {filteredQuestions.map((question) => (
-          <div key={question.title}>
+          <div key={question.id}>
             <PostCard {...question} />
             <div className="mt-2 flex gap-2">
               {question.tags.map((tag) => (

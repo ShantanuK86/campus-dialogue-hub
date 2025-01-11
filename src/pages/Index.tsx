@@ -4,6 +4,7 @@ import { TrendingUp } from "lucide-react";
 
 const TRENDING_POSTS = [
   {
+    id: "1", // Add ID
     title: "How to effectively prepare for Computer Science finals?",
     preview: "I'm struggling with algorithm complexity and data structures...",
     votes: 45,
@@ -14,6 +15,7 @@ const TRENDING_POSTS = [
     trending: true,
   },
   {
+    id: "2", // Add ID
     title: "Best practices for research paper citations",
     preview: "Looking for guidance on APA format and academic writing...",
     votes: 38,
@@ -27,6 +29,7 @@ const TRENDING_POSTS = [
 
 const LATEST_POSTS = [
   {
+    id: "3", // Add ID
     title: "Campus WiFi connectivity issues in Library",
     preview: "Has anyone else experienced connection drops...",
     votes: 12,
@@ -36,6 +39,7 @@ const LATEST_POSTS = [
     timestamp: "30m ago",
   },
   {
+    id: "4", // Add ID
     title: "Announcement: New Learning Management System",
     preview: "We're upgrading our LMS platform to improve...",
     votes: 25,
@@ -58,7 +62,7 @@ const Index = () => {
           </h2>
           <div className="grid gap-6">
             {TRENDING_POSTS.map((post) => (
-              <PostCard key={post.title} {...post} />
+              <PostCard key={post.id} {...post} />
             ))}
           </div>
         </section>
@@ -67,7 +71,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
           <div className="grid gap-6">
             {LATEST_POSTS.map((post) => (
-              <PostCard key={post.title} {...post} />
+              <PostCard key={post.id} {...post} />
             ))}
           </div>
         </section>
