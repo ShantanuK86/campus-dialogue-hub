@@ -1,64 +1,187 @@
 import { AppBar } from "@/components/AppBar";
 import { PostCard } from "@/components/PostCard";
-import { TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { PlusCircle, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const TRENDING_POSTS = [
-  {
-    title: "How to effectively prepare for Computer Science finals?",
-    preview: "I'm struggling with algorithm complexity and data structures...",
-    votes: 45,
-    answers: 12,
-    author: "John Doe",
-    role: "student",
-    timestamp: "2h ago",
-    trending: true,
-  },
-  {
-    title: "Best practices for research paper citations",
-    preview: "Looking for guidance on APA format and academic writing...",
-    votes: 38,
-    answers: 8,
-    author: "Dr. Smith",
-    role: "teacher",
-    timestamp: "4h ago",
-    trending: true,
-  },
-] as const;
-
-const LATEST_POSTS = [
-  {
-    title: "Campus WiFi connectivity issues in Library",
-    preview: "Has anyone else experienced connection drops...",
-    votes: 12,
-    answers: 3,
-    author: "Jane Smith",
-    role: "student",
-    timestamp: "30m ago",
-  },
-  {
-    title: "Announcement: New Learning Management System",
-    preview: "We're upgrading our LMS platform to improve...",
-    votes: 25,
-    answers: 15,
-    author: "Admin Team",
-    role: "admin",
-    timestamp: "1h ago",
-  },
-] as const;
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  preview: string;
+  votes: number;
+  created_at: string;
+  profiles: {
+    username: string;
+  };
+  posts_tags: {
+    tags: {
+      name: string;
+    };
+  }[];
+}
 
 const Home = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newPost, setNewPost] = useState({
+    title: "",
+    content: "",
+    preview: "",
+  });
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    const { data: posts, error } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        profiles (
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order("votes", { ascending: false });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching posts",
+        description: error.message,
+      });
+      return;
+    }
+
+    setPosts(posts);
+  };
+
+  const handleCreatePost = async () => {
+    const { data: session } = await supabase.auth.getSession();
+    
+    if (!session?.session?.user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please sign in to create a post",
+      });
+      navigate("/login");
+      return;
+    }
+
+    const { error } = await supabase.from("posts").insert({
+      title: newPost.title,
+      content: newPost.content,
+      preview: newPost.preview,
+      author_id: session.session.user.id,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error creating post",
+        description: error.message,
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Post created successfully",
+    });
+
+    setNewPost({ title: "", content: "", preview: "" });
+    setShowCreateForm(false);
+    fetchPosts();
+  };
+
+  const trendingPosts = posts.slice(0, 2);
+  const latestPosts = posts.slice(2);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AppBar />
       <main className="container py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Campus Discussions</h1>
+          <Button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="flex items-center gap-2"
+          >
+            <PlusCircle className="h-5 w-5" />
+            Create Post
+          </Button>
+        </div>
+
+        {showCreateForm && (
+          <div className="bg-white p-6 rounded-lg shadow-md mb-8 space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Create New Post</h2>
+            <Input
+              placeholder="Title"
+              value={newPost.title}
+              onChange={(e) =>
+                setNewPost({ ...newPost, title: e.target.value })
+              }
+            />
+            <Textarea
+              placeholder="Preview (short description)"
+              value={newPost.preview}
+              onChange={(e) =>
+                setNewPost({ ...newPost, preview: e.target.value })
+              }
+            />
+            <Textarea
+              placeholder="Content"
+              value={newPost.content}
+              onChange={(e) =>
+                setNewPost({ ...newPost, content: e.target.value })
+              }
+              className="min-h-[200px]"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateForm(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCreatePost}>Create Post</Button>
+            </div>
+          </div>
+        )}
+
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
             Trending Discussions
           </h2>
           <div className="grid gap-6">
-            {TRENDING_POSTS.map((post) => (
-              <PostCard key={post.title} {...post} />
+            {trendingPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                title={post.title}
+                preview={post.preview}
+                votes={post.votes}
+                answers={post.posts_tags?.length || 0}
+                author={post.profiles.username}
+                role="student"
+                timestamp={new Date(post.created_at).toLocaleDateString()}
+                trending={true}
+                tags={post.posts_tags.map((pt) => pt.tags.name)}
+              />
             ))}
           </div>
         </section>
@@ -66,8 +189,18 @@ const Home = () => {
         <section>
           <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
           <div className="grid gap-6">
-            {LATEST_POSTS.map((post) => (
-              <PostCard key={post.title} {...post} />
+            {latestPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                title={post.title}
+                preview={post.preview}
+                votes={post.votes}
+                answers={post.posts_tags?.length || 0}
+                author={post.profiles.username}
+                role="student"
+                timestamp={new Date(post.created_at).toLocaleDateString()}
+                tags={post.posts_tags.map((pt) => pt.tags.name)}
+              />
             ))}
           </div>
         </section>
