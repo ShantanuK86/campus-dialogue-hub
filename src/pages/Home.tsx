@@ -172,6 +172,7 @@ const Home = () => {
             {trendingPosts.map((post) => (
               <PostCard
                 key={post.id}
+                id={post.id}
                 title={post.title}
                 preview={post.preview}
                 votes={post.votes}
@@ -192,6 +193,7 @@ const Home = () => {
             {latestPosts.map((post) => (
               <PostCard
                 key={post.id}
+                id={post.id}
                 title={post.title}
                 preview={post.preview}
                 votes={post.votes}

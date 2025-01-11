@@ -4,6 +4,7 @@ import { TrendingUp, MessageSquare } from "lucide-react";
 import { Comments } from "./Comments";
 
 export interface PostCardProps {
+  id: string; // Add post ID
   title: string;
   preview: string;
   votes: number;
@@ -16,6 +17,7 @@ export interface PostCardProps {
 }
 
 export const PostCard = ({
+  id, // Add post ID to destructuring
   title,
   preview,
   votes,
@@ -73,7 +75,7 @@ export const PostCard = ({
           ))}
         </div>
       )}
-      <Comments postId={title} />
+      <Comments postId={id} />
     </Card>
   );
 };
