@@ -8,6 +8,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Questions from "./pages/Questions";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
                 <Route path="/" element={<Landing />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/questions" element={<Questions />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
               </Routes>
             </main>
           </div>
