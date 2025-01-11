@@ -1,81 +1,132 @@
-import { AppBar } from "@/components/AppBar";
 import { PostCard } from "@/components/PostCard";
-import { TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
-const TRENDING_POSTS = [
-  {
-    id: "1", // Add ID
-    title: "How to effectively prepare for Computer Science finals?",
-    preview: "I'm struggling with algorithm complexity and data structures...",
-    votes: 45,
-    answers: 12,
-    author: "John Doe",
-    role: "student",
-    timestamp: "2h ago",
-    trending: true,
-  },
-  {
-    id: "2", // Add ID
-    title: "Best practices for research paper citations",
-    preview: "Looking for guidance on APA format and academic writing...",
-    votes: 38,
-    answers: 8,
-    author: "Dr. Smith",
-    role: "teacher",
-    timestamp: "4h ago",
-    trending: true,
-  },
-] as const;
-
-const LATEST_POSTS = [
-  {
-    id: "3", // Add ID
-    title: "Campus WiFi connectivity issues in Library",
-    preview: "Has anyone else experienced connection drops...",
-    votes: 12,
-    answers: 3,
-    author: "Jane Smith",
-    role: "student",
-    timestamp: "30m ago",
-  },
-  {
-    id: "4", // Add ID
-    title: "Announcement: New Learning Management System",
-    preview: "We're upgrading our LMS platform to improve...",
-    votes: 25,
-    answers: 15,
-    author: "Admin Team",
-    role: "admin",
-    timestamp: "1h ago",
-  },
-] as const;
+interface Post {
+  id: string;
+  title: string;
+  preview: string;
+  votes: number;
+  created_at: string;
+  profiles: {
+    username: string;
+  };
+  posts_tags: {
+    tags: {
+      name: string;
+    };
+  }[];
+}
 
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <AppBar />
-      <main className="container py-8">
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            Trending Discussions
-          </h2>
-          <div className="grid gap-6">
-            {TRENDING_POSTS.map((post) => (
-              <PostCard key={post.id} {...post} />
-            ))}
-          </div>
-        </section>
+  const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
+  const [latestPosts, setLatestPosts] = useState<Post[]>([]);
+  const { toast } = useToast();
 
-        <section>
-          <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
-          <div className="grid gap-6">
-            {LATEST_POSTS.map((post) => (
-              <PostCard key={post.id} {...post} />
-            ))}
-          </div>
-        </section>
-      </main>
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    // Fetch trending posts (posts with most votes)
+    const { data: trending, error: trendingError } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        profiles (
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order('votes', { ascending: false })
+      .limit(2);
+
+    if (trendingError) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching trending posts",
+        description: trendingError.message,
+      });
+      return;
+    }
+
+    // Fetch latest posts
+    const { data: latest, error: latestError } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        profiles (
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(2);
+
+    if (latestError) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching latest posts",
+        description: latestError.message,
+      });
+      return;
+    }
+
+    setTrendingPosts(trending || []);
+    setLatestPosts(latest || []);
+  };
+
+  return (
+    <div className="container py-8">
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-6">Trending Discussions</h2>
+        <div className="grid gap-6">
+          {trendingPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              title={post.title}
+              preview={post.preview}
+              votes={post.votes}
+              answers={post.posts_tags?.length || 0}
+              author={post.profiles.username}
+              role="student"
+              timestamp={new Date(post.created_at).toLocaleDateString()}
+              trending={true}
+              tags={post.posts_tags.map((pt) => pt.tags.name)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
+        <div className="grid gap-6">
+          {latestPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              title={post.title}
+              preview={post.preview}
+              votes={post.votes}
+              answers={post.posts_tags?.length || 0}
+              author={post.profiles.username}
+              role="student"
+              timestamp={new Date(post.created_at).toLocaleDateString()}
+              tags={post.posts_tags.map((pt) => pt.tags.name)}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
