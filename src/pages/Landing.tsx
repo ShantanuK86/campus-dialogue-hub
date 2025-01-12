@@ -1,69 +1,134 @@
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { PostCard } from "@/components/PostCard";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+
+interface Post {
+  id: string;
+  title: string;
+  preview: string;
+  votes: number;
+  created_at: string;
+  profiles: {
+    username: string;
+  };
+  posts_tags: {
+    tags: {
+      name: string;
+    };
+  }[];
+}
 
 const Landing = () => {
-  return (
-    <div className="min-h-screen bg-secondary dark:bg-[#121212] text-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-            Exclusive Social Hub for
-            <br />
-            College Students
-          </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            A social media platform that's exclusive for college students, faculty, and alumni.
-            Share knowledge, connect with peers, and engage in meaningful discussions.
-          </p>
-          
-          <div className="flex flex-col items-center gap-6 mt-12">
-            <Link to="/signup">
-              <Button size="lg" className="text-lg px-8 bg-primary hover:bg-primary/90">
-                Sign up with College Account
-              </Button>
-            </Link>
-            <p className="text-sm text-gray-400">
-              By signing in, you agree to our{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-              .
-            </p>
-          </div>
+  const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
+  const [latestPosts, setLatestPosts] = useState<Post[]>([]);
+  const { toast } = useToast();
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
-            <FeatureCard
-              icon="👥"
-              title="Connect"
-              description="Easily find and connect with other students and faculty members."
-            />
-            <FeatureCard
-              icon="💡"
-              title="Share Knowledge"
-              description="Share your academic insights and learn from others."
-            />
-            <FeatureCard
-              icon="🚀"
-              title="Grow Together"
-              description="Join discussions and grow your academic network."
-            />
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    // Fetch trending posts (posts with most votes)
+    const { data: trending, error: trendingError } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        profiles (
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order('votes', { ascending: false })
+      .limit(2);
+
+    if (trendingError) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching trending posts",
+        description: trendingError.message,
+      });
+      return;
+    }
+
+    // Fetch latest posts
+    const { data: latest, error: latestError } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        profiles (
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(2);
+
+    if (latestError) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching latest posts",
+        description: latestError.message,
+      });
+      return;
+    }
+
+    setTrendingPosts(trending || []);
+    setLatestPosts(latest || []);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container py-8">
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Trending Discussions</h2>
+          <div className="grid gap-6">
+            {trendingPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                preview={post.preview}
+                votes={post.votes}
+                answers={post.posts_tags?.length || 0}
+                author={post.profiles.username}
+                role="student"
+                timestamp={new Date(post.created_at).toLocaleDateString()}
+                trending={true}
+                tags={post.posts_tags.map((pt) => pt.tags.name)}
+              />
+            ))}
           </div>
-        </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Latest Posts</h2>
+          <div className="grid gap-6">
+            {latestPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                preview={post.preview}
+                votes={post.votes}
+                answers={post.posts_tags?.length || 0}
+                author={post.profiles.username}
+                role="student"
+                timestamp={new Date(post.created_at).toLocaleDateString()}
+                tags={post.posts_tags.map((pt) => pt.tags.name)}
+              />
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
-  );
-};
-
-const FeatureCard = ({ icon, title, description }: { icon: string; title: string; description: string }) => {
-  return (
-    <div className="p-6 rounded-lg bg-accent/10 backdrop-blur-sm border border-white/10">
-      <div className="text-3xl mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-400">{description}</p>
     </div>
   );
 };

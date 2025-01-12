@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppBar } from "@/components/AppBar";
+import { Footer } from "@/components/Footer";
 import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Questions from "./pages/Questions";
@@ -17,15 +18,15 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const showAppBar = !['/login', '/signup'].includes(location.pathname);
+  const isAuthPage = ['/login', '/signup'].includes(location.pathname);
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col">
-        {showAppBar && <AppBar />}
-        <div className="flex flex-1 pt-16"> {/* Added pt-16 for AppBar height */}
-          {showAppBar && <AppSidebar />}
-          <main className="flex-1">
+        <AppBar />
+        <div className="flex flex-1 pt-16">
+          {!isAuthPage && <AppSidebar />}
+          <main className="flex-1 bg-background">
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/home" element={<Home />} />
@@ -36,6 +37,7 @@ const AppContent = () => {
             </Routes>
           </main>
         </div>
+        {!isAuthPage && <Footer />}
       </div>
       <Toaster />
       <Sonner />

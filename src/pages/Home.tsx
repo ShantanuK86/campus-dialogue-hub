@@ -111,10 +111,10 @@ const Home = () => {
   const latestPosts = posts.slice(2);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <main className="container py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Campus Discussions</h1>
+          <h1 className="text-3xl font-bold text-foreground">Campus Discussions</h1>
           <Button
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="flex items-center gap-2"
@@ -125,14 +125,15 @@ const Home = () => {
         </div>
 
         {showCreateForm && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8 space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Create New Post</h2>
+          <div className="bg-card p-6 rounded-lg shadow-md mb-8 space-y-4">
+            <h2 className="text-xl font-semibold mb-4 text-card-foreground">Create New Post</h2>
             <Input
               placeholder="Title"
               value={newPost.title}
               onChange={(e) =>
                 setNewPost({ ...newPost, title: e.target.value })
               }
+              className="bg-background text-foreground"
             />
             <Textarea
               placeholder="Preview (short description)"
@@ -140,6 +141,7 @@ const Home = () => {
               onChange={(e) =>
                 setNewPost({ ...newPost, preview: e.target.value })
               }
+              className="bg-background text-foreground"
             />
             <Textarea
               placeholder="Content"
@@ -147,7 +149,7 @@ const Home = () => {
               onChange={(e) =>
                 setNewPost({ ...newPost, content: e.target.value })
               }
-              className="min-h-[200px]"
+              className="min-h-[200px] bg-background text-foreground"
             />
             <div className="flex justify-end gap-2">
               <Button
@@ -162,7 +164,7 @@ const Home = () => {
         )}
 
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
             <TrendingUp className="h-6 w-6 text-primary" />
             Trending Discussions
           </h2>
@@ -186,7 +188,7 @@ const Home = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold mb-6">Latest Posts</h2>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Latest Posts</h2>
           <div className="grid gap-6">
             {latestPosts.map((post) => (
               <PostCard
