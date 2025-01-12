@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, MessageSquare } from "lucide-react";
-import { Comments } from "./Comments";
+import { useNavigate } from "react-router-dom";
 
 export interface PostCardProps {
-  id: string; // Add post ID
+  id: string;
   title: string;
   preview: string;
   votes: number;
@@ -17,7 +17,7 @@ export interface PostCardProps {
 }
 
 export const PostCard = ({
-  id, // Add post ID to destructuring
+  id,
   title,
   preview,
   votes,
@@ -28,6 +28,7 @@ export const PostCard = ({
   trending,
   tags,
 }: PostCardProps) => {
+  const navigate = useNavigate();
   const roleColors = {
     student: "bg-blue-100 text-blue-800",
     teacher: "bg-green-100 text-green-800",
@@ -35,7 +36,10 @@ export const PostCard = ({
   };
 
   return (
-    <Card className="p-6 hover:shadow-md transition-shadow">
+    <Card 
+      className="p-6 hover:shadow-md transition-shadow cursor-pointer" 
+      onClick={() => navigate(`/post/${id}`)}
+    >
       <div className="flex justify-between items-start mb-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -50,7 +54,7 @@ export const PostCard = ({
           <p className="text-gray-600 line-clamp-2">{preview}</p>
         </div>
       </div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">{votes} votes</span>
           <span className="flex items-center gap-1 text-sm text-gray-500">
@@ -67,7 +71,7 @@ export const PostCard = ({
         </div>
       </div>
       {tags && tags.length > 0 && (
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mt-4">
           {tags.map((tag) => (
             <Badge key={tag} variant="secondary">
               {tag}
@@ -75,7 +79,6 @@ export const PostCard = ({
           ))}
         </div>
       )}
-      <Comments postId={id} />
     </Card>
   );
 };

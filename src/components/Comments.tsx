@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Comment {
   id: string;
@@ -21,6 +22,7 @@ export const Comments = ({ postId }: CommentsProps) => {
   const [newComment, setNewComment] = useState("");
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   const fetchComments = async () => {
     const { data, error } = await supabase
@@ -42,9 +44,7 @@ export const Comments = ({ postId }: CommentsProps) => {
   };
 
   useEffect(() => {
-    // Get initial comments
     fetchComments();
-    // Get user session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -52,11 +52,7 @@ export const Comments = ({ postId }: CommentsProps) => {
 
   const handleSubmitComment = async () => {
     if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Authentication required",
-        description: "Please login to comment",
-      });
+      navigate("/login");
       return;
     }
 
@@ -99,18 +95,20 @@ export const Comments = ({ postId }: CommentsProps) => {
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Comments</h3>
       
-      {user ? (
-        <div className="space-y-2">
-          <Textarea
-            placeholder="Write a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-          />
-          <Button onClick={handleSubmitComment}>Post Comment</Button>
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500">Please login to comment</p>
-      )}
+      <div className="space-y-2">
+        <Textarea
+          placeholder="Write a comment..."
+          value={newComment}
+          onChange={(e) => {
+            if (!user) {
+              navigate("/login");
+              return;
+            }
+            setNewComment(e.target.value);
+          }}
+        />
+        <Button onClick={handleSubmitComment}>Post Comment</Button>
+      </div>
 
       <div className="space-y-4">
         {comments.map((comment) => (
