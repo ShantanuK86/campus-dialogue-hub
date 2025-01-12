@@ -1,4 +1,3 @@
-import { AppBar } from "@/components/AppBar";
 import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,7 +112,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppBar />
       <main className="container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Campus Discussions</h1>

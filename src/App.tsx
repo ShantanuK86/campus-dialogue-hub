@@ -23,8 +23,8 @@ const AppContent = () => {
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col">
         {showAppBar && <AppBar />}
-        <div className="flex flex-1">
-          <AppSidebar />
+        <div className="flex flex-1 pt-16"> {/* Added pt-16 for AppBar height */}
+          {showAppBar && <AppSidebar />}
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Landing />} />
