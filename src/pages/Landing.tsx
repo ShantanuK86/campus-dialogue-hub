@@ -47,12 +47,12 @@ const Landing = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
             Exclusive Social Hub for
             <br />
-            Cavite State University
+            Our College
           </h1>
           <p className="text-lg text-muted-foreground mb-8">
             A social media platform that's only accessible for
             <br />
-            Cavite State University students, faculty, and alumni.
+            College students, faculty, and alumni.
           </p>
           <div className="flex gap-4 justify-center">
             <Button
@@ -60,7 +60,7 @@ const Landing = () => {
               onClick={() => navigate("/signup")}
               className="bg-primary hover:bg-primary/90"
             >
-              Sign Up with CSU Account
+              Sign Up with College Account
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
