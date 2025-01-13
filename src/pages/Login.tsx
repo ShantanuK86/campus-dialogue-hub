@@ -4,19 +4,35 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const formSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
 
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleEmailLogin = async () => {
-    const email = prompt('Please enter your email:');
-    if (!email) return;
-    
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const handleEmailLogin = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: values.email,
     });
     
+    setIsLoading(false);
     if (error) {
       toast({
         variant: "destructive",
@@ -53,24 +69,54 @@ const Login = () => {
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="text-muted-foreground mt-2">Sign in to your account</p>
         </div>
-        <div className="space-y-4">
-          <Button
-            variant="outline"
-            className="w-full flex items-center gap-2 justify-center"
-            onClick={handleEmailLogin}
-          >
-            <Mail className="h-4 w-4" />
-            Continue with Email
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full flex items-center gap-2 justify-center"
-            onClick={handleGithubLogin}
-          >
-            <Github className="h-4 w-4" />
-            Continue with GitHub
-          </Button>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleEmailLogin)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter your email" 
+                      type="email" 
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              variant="outline"
+              className="w-full flex items-center gap-2 justify-center"
+              disabled={isLoading}
+            >
+              <Mail className="h-4 w-4" />
+              Continue with Email
+            </Button>
+          </form>
+        </Form>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
         </div>
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2 justify-center"
+          onClick={handleGithubLogin}
+        >
+          <Github className="h-4 w-4" />
+          Continue with GitHub
+        </Button>
         <p className="text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
           <Button variant="link" className="p-0" onClick={() => navigate('/signup')}>

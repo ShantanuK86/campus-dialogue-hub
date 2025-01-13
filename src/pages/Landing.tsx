@@ -2,9 +2,29 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Users, FileText, Clock, Shield, UserCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', session.user.id)
+          .single();
+        
+        setUsername(profile?.username || profile?.full_name || session.user.email);
+      }
+    };
+
+    getProfile();
+  }, []);
 
   const features = [
     {
@@ -45,27 +65,41 @@ const Landing = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
-            Exclusive Social Hub for
-            <br />
-            Our College
+            {username ? (
+              <>
+                Welcome back,
+                <br />
+                {username}!
+              </>
+            ) : (
+              <>
+                Exclusive Social Hub for
+                <br />
+                Our College
+              </>
+            )}
           </h1>
           <p className="text-lg text-muted-foreground mb-8">
             A social media platform that's only accessible for
             <br />
             College students, faculty, and alumni.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button
-              size="lg"
-              onClick={() => navigate("/signup")}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Sign Up with College Account
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground mt-4">
-            By signing up, you agree to our Terms of Service
-          </p>
+          {!username && (
+            <div className="flex gap-4 justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate("/signup")}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Sign Up with College Account
+              </Button>
+            </div>
+          )}
+          {!username && (
+            <p className="text-sm text-muted-foreground mt-4">
+              By signing up, you agree to our Terms of Service
+            </p>
+          )}
         </div>
 
         {/* Features Section */}
