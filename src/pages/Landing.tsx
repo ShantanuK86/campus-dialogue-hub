@@ -26,6 +26,12 @@ const Landing = () => {
     getProfile();
   }, []);
 
+  const handleForumClick = () => {
+    if (username) {
+      navigate('/home');
+    }
+  };
+
   const features = [
     {
       icon: <MessageCircle className="h-8 w-8 text-primary" />,
@@ -40,7 +46,9 @@ const Landing = () => {
     {
       icon: <FileText className="h-8 w-8 text-primary" />,
       title: "Forums",
-      description: "Engage in academic discussions and share knowledge"
+      description: "Engage in academic discussions and share knowledge",
+      onClick: handleForumClick,
+      active: !!username
     },
     {
       icon: <Clock className="h-8 w-8 text-primary" />,
@@ -107,7 +115,13 @@ const Landing = () => {
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="p-6 bg-card hover:shadow-lg transition-shadow">
+              <Card 
+                key={index} 
+                className={`p-6 bg-card hover:shadow-lg transition-shadow ${
+                  feature.active ? 'cursor-pointer' : ''
+                }`}
+                onClick={feature.onClick}
+              >
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-4">{feature.icon}</div>
                   <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>

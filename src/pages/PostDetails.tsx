@@ -28,11 +28,13 @@ const PostDetails = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [hasVoted, setHasVoted] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPost();
+    checkUserVote();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -67,31 +69,63 @@ const PostDetails = () => {
     setPost(data);
   };
 
+  const checkUserVote = async () => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session?.user) return;
+
+    const { data } = await supabase
+      .from("user_votes")
+      .select()
+      .eq("post_id", id)
+      .eq("user_id", session.session.user.id)
+      .single();
+
+    setHasVoted(!!data);
+  };
+
   const handleVote = async () => {
     if (!user) {
       navigate("/login");
       return;
     }
 
-    const { error } = await supabase
-      .from("posts")
-      .update({ votes: (post?.votes || 0) + 1 })
-      .eq("id", id);
+    try {
+      if (hasVoted) {
+        // Remove vote
+        await supabase
+          .from("user_votes")
+          .delete()
+          .eq("post_id", id)
+          .eq("user_id", user.id);
 
-    if (error) {
+        await supabase
+          .from("posts")
+          .update({ votes: (post?.votes || 0) - 1 })
+          .eq("id", id);
+
+        setHasVoted(false);
+      } else {
+        // Add vote
+        await supabase
+          .from("user_votes")
+          .insert({ post_id: id, user_id: user.id });
+
+        await supabase
+          .from("posts")
+          .update({ votes: (post?.votes || 0) + 1 })
+          .eq("id", id);
+
+        setHasVoted(true);
+      }
+
+      fetchPost();
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error updating votes",
+        title: "Error updating vote",
         description: error.message,
       });
-      return;
     }
-
-    fetchPost();
-    toast({
-      title: "Success",
-      description: "Vote recorded successfully",
-    });
   };
 
   if (!post) return <div>Loading...</div>;
@@ -111,7 +145,7 @@ const PostDetails = () => {
               </span>
             </div>
             <Button
-              variant="outline"
+              variant={hasVoted ? "default" : "outline"}
               className="flex items-center gap-2"
               onClick={handleVote}
             >
