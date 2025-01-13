@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowBigUp, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import Comments from "@/components/Comments";
+import { Comments } from "@/components/Comments";
 
 interface Post {
   id: string;
