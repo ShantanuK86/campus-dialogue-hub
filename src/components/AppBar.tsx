@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -8,12 +9,12 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const AppBar = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<{ username?: string } | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user has a theme preference
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
     if (savedTheme) {
       setTheme(savedTheme);
@@ -22,16 +23,34 @@ export const AppBar = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
+    if (!error && data) {
+      setProfile(data);
+    }
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -52,11 +71,6 @@ export const AppBar = () => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.toggle('dark');
-    
-    toast({
-      title: `${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode enabled`,
-      duration: 1500,
-    });
   };
 
   return (
@@ -95,9 +109,14 @@ export const AppBar = () => {
             </>
           ) : (
             <>
-              <Button variant="outline" className="flex items-center gap-2">
-                {user.email}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarFallback>{profile?.username?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">
+                  {profile?.username || user.email}
+                </span>
+              </div>
               <Button
                 variant="ghost"
                 className="flex items-center gap-2"

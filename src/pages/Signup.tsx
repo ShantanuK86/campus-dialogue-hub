@@ -36,6 +36,15 @@ const Signup = () => {
         description: error.message,
       });
     } else {
+      // Send welcome email
+      const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+        body: { email: values.email }
+      });
+
+      if (emailError) {
+        console.error('Error sending welcome email:', emailError);
+      }
+
       toast({
         title: "Check your email",
         description: "We've sent you a magic link to sign up.",
