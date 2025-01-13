@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Comments } from "@/components/Comments";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp } from "lucide-react";
+import { ArrowBigUp, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import Comments from "@/components/Comments";
 
 interface Post {
   id: string;
@@ -16,12 +15,8 @@ interface Post {
   created_at: string;
   profiles: {
     username: string;
+    avatar_url: string;
   };
-  posts_tags: {
-    tags: {
-      name: string;
-    };
-  }[];
 }
 
 const PostDetails = () => {
@@ -41,17 +36,15 @@ const PostDetails = () => {
   }, [id]);
 
   const fetchPost = async () => {
+    if (!id) return;
+
     const { data, error } = await supabase
       .from("posts")
       .select(`
         *,
         profiles (
-          username
-        ),
-        posts_tags (
-          tags (
-            name
-          )
+          username,
+          avatar_url
         )
       `)
       .eq("id", id)
@@ -131,43 +124,39 @@ const PostDetails = () => {
   if (!post) return <div>Loading...</div>;
 
   return (
-    <div className="container py-8">
-      <Card className="p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">
-                Posted by {post.profiles.username}
-              </span>
-              <span className="text-sm text-gray-500">
-                {new Date(post.created_at).toLocaleDateString()}
-              </span>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-bold">{post.title}</h1>
+                <span className="text-sm text-muted-foreground">
+                  Posted by {post.profiles.username}
+                </span>
+              </div>
             </div>
             <Button
               variant={hasVoted ? "default" : "outline"}
               className="flex items-center gap-2"
               onClick={handleVote}
             >
-              <ThumbsUp className="h-4 w-4" />
-              {post.votes} votes
+              <ArrowBigUp className="h-5 w-5" />
+              <span>{post.votes}</span>
             </Button>
           </div>
-          {post.posts_tags && post.posts_tags.length > 0 && (
-            <div className="flex gap-2 mb-4">
-              {post.posts_tags.map((pt) => (
-                <Badge key={pt.tags.name} variant="secondary">
-                  {pt.tags.name}
-                </Badge>
-              ))}
-            </div>
-          )}
-          <div className="prose max-w-none">
+          <div className="prose max-w-none mb-6">
             <p>{post.content}</p>
+          </div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>
+              {format(new Date(post.created_at), "MMM d, yyyy")}
+            </span>
           </div>
         </div>
         <Comments postId={post.id} />
-      </Card>
+      </div>
     </div>
   );
 };

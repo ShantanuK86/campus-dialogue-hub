@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MessageCircle, FileText, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Users, FileText, Clock, Shield, UserCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -15,11 +15,11 @@ const Landing = () => {
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username, full_name')
+          .select('username')
           .eq('id', session.user.id)
           .single();
         
-        setUsername(profile?.username || profile?.full_name || session.user.email);
+        setUsername(profile?.username);
       }
     };
 
@@ -35,13 +35,13 @@ const Landing = () => {
   const features = [
     {
       icon: <MessageCircle className="h-8 w-8 text-primary" />,
-      title: "Global & Campus Chats",
-      description: "Connect with peers through global and campus-specific chat rooms"
+      title: "Real-time Chat",
+      description: "Connect with classmates instantly"
     },
     {
       icon: <Users className="h-8 w-8 text-primary" />,
-      title: "Private Messaging",
-      description: "Send direct messages to fellow students and faculty members"
+      title: "Study Groups",
+      description: "Form and join study groups"
     },
     {
       icon: <FileText className="h-8 w-8 text-primary" />,
@@ -53,65 +53,37 @@ const Landing = () => {
     {
       icon: <Clock className="h-8 w-8 text-primary" />,
       title: "Event Planning",
-      description: "Organize and coordinate campus events and activities"
-    },
-    {
-      icon: <Shield className="h-8 w-8 text-primary" />,
-      title: "NGL Feature",
-      description: "Share anonymous messages with your campus community"
-    },
-    {
-      icon: <UserCheck className="h-8 w-8 text-primary" />,
-      title: "Real Profile",
-      description: "Create and customize your academic profile"
+      description: "Schedule and manage study sessions"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-16 flex flex-col items-center">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
-            {username ? (
-              <>
-                Welcome back,
-                <br />
-                {username}!
-              </>
-            ) : (
-              <>
-                Exclusive Social Hub for
-                <br />
-                Our College
-              </>
-            )}
+    <div className="min-h-screen">
+      <main className="container mx-auto px-4 py-16">
+        <section className="text-center mb-16">
+          <h1 className="text-4xl font-bold mb-6">
+            {username ? `Welcome back, ${username}!` : "Sign Up with Your College Account"}
           </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            A social media platform that's only accessible for
-            <br />
-            College students, faculty, and alumni.
+          <p className="text-xl text-muted-foreground mb-8">
+            Join your college community today
           </p>
           {!username && (
-            <div className="flex gap-4 justify-center">
+            <>
               <Button
                 size="lg"
                 onClick={() => navigate("/signup")}
-                className="bg-primary hover:bg-primary/90"
+                className="mb-4"
               >
-                Sign Up with College Account
+                Get Started
               </Button>
-            </div>
+              <p className="text-sm text-muted-foreground">
+                By signing up, you agree to our Terms of Service
+              </p>
+            </>
           )}
-          {!username && (
-            <p className="text-sm text-muted-foreground mt-4">
-              By signing up, you agree to our Terms of Service
-            </p>
-          )}
-        </div>
+        </section>
 
-        {/* Features Section */}
-        <section className="mb-16">
+        <section>
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -131,23 +103,7 @@ const Landing = () => {
             ))}
           </div>
         </section>
-
-        {/* CTA Section */}
-        <section className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-6">
-            Share and receive anonymous messages, express freely,
-            <br />
-            and connect like never before!
-          </h2>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            Send us an anonymous message!
-          </Button>
-        </section>
-      </div>
+      </main>
     </div>
   );
 };
