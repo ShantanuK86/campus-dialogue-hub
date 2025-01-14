@@ -28,23 +28,51 @@ const Login = () => {
 
   const handleEmailLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: values.email,
-    });
     
-    setIsLoading(false);
-    if (error) {
+    try {
+      // First, check if the user exists in the profiles table
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!existingProfile) {
+        toast({
+          variant: "destructive",
+          title: "Account not found",
+          description: "Please sign up first to create an account.",
+        });
+        navigate('/signup');
+        return;
+      }
+
+      // If user exists, proceed with magic link login
+      const { error } = await supabase.auth.signInWithOtp({
+        email: values.email,
+      });
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error signing in",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Check your email",
+          description: "We've sent you a magic link to sign in.",
+        });
+        navigate('/home');
+      }
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
-        description: error.message,
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
       });
-    } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a magic link to sign in.",
-      });
-      navigate('/home');
+    } finally {
+      setIsLoading(false);
     }
   };
 
