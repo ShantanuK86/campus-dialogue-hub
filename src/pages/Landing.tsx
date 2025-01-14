@@ -90,17 +90,20 @@ const Landing = () => {
     }
   ];
 
-  const handleFeatureClick = (feature: string) => {
-    if (feature === 'Forums' && username) {
-      navigate('/home');
-    } else if (feature === 'Forums' && !username) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to access the forums.",
-        variant: "destructive",
-      });
+  const handleFeatureClick = (feature: any) => {
+    if (feature.title === 'Forums') {
+      if (username) {
+        navigate('/home');
+      } else {
+        toast({
+          title: "Authentication Required",
+          description: "Please login to access the forums.",
+          variant: "destructive",
+        });
+      }
     } else {
-      navigate(`/${feature.toLowerCase()}`);
+      // For all other features, navigate to their respective routes
+      navigate(`/${feature.path}`);
     }
   };
 
@@ -160,7 +163,7 @@ const Landing = () => {
                       className={`p-6 bg-card hover:shadow-lg transition-all duration-300 ${
                         (feature.requiresAuth && username) || !feature.requiresAuth ? 'cursor-pointer opacity-100' : 'opacity-70'
                       }`}
-                      onClick={() => handleFeatureClick(feature.title)}
+                      onClick={() => handleFeatureClick(feature)}
                     >
                       <div className="flex flex-col items-center text-center">
                         <div className="mb-4">{feature.icon}</div>
