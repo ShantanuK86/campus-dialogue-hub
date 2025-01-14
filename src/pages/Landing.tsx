@@ -4,10 +4,27 @@ import { MessageCircle, FileText, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -25,14 +42,6 @@ const Landing = () => {
 
     getProfile();
   }, []);
-
-  const handleFeatureClick = (feature: string) => {
-    if (feature === 'Forums' && username) {
-      navigate('/home');
-    } else {
-      navigate(`/${feature.toLowerCase()}`);
-    }
-  };
 
   const features = [
     {
@@ -62,15 +71,58 @@ const Landing = () => {
     }
   ];
 
+  const faqs = [
+    {
+      question: "What is this platform about?",
+      answer: "This is an exclusive social platform for our college students to connect, collaborate, and share academic resources."
+    },
+    {
+      question: "How do I join study groups?",
+      answer: "Once registered, you can browse and join existing study groups or create your own based on your courses and interests."
+    },
+    {
+      question: "Is my data secure?",
+      answer: "Yes, we implement industry-standard security measures to protect your data and maintain your privacy."
+    },
+    {
+      question: "How can I report inappropriate content?",
+      answer: "You can report any inappropriate content through the report button available on posts and comments, or contact our support team."
+    }
+  ];
+
+  const handleFeatureClick = (feature: string) => {
+    if (feature === 'Forums' && username) {
+      navigate('/home');
+    } else if (feature === 'Forums' && !username) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to access the forums.",
+        variant: "destructive",
+      });
+    } else {
+      navigate(`/${feature.toLowerCase()}`);
+    }
+  };
+
+  const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Message Sent",
+      description: "We'll get back to you soon!",
+    });
+    (e.target as HTMLFormElement).reset();
+  };
+
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 py-16">
+        {/* Hero Section */}
         <section className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-6">
-            {username ? `Welcome back, ${username}!` : "Sign Up with Your College Account"}
+            Welcome to Our College Community Hub
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            Join your college community today
+            Connect, collaborate, and grow with your college community
           </p>
           {!username && (
             <>
@@ -88,24 +140,82 @@ const Landing = () => {
           )}
         </section>
 
-        <section>
+        {/* Features Section with Carousel */}
+        <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card 
-                key={index} 
-                className={`p-6 bg-card hover:shadow-lg transition-shadow ${
-                  (feature.requiresAuth && username) || !feature.requiresAuth ? 'cursor-pointer' : 'opacity-70'
-                }`}
-                onClick={() => handleFeatureClick(feature.title)}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4">{feature.icon}</div>
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </div>
-              </Card>
-            ))}
+          <Carousel className="w-full max-w-5xl mx-auto">
+            <CarouselContent className="-ml-1">
+              {features.map((feature, index) => (
+                <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1">
+                    <Card 
+                      className={`p-6 bg-card hover:shadow-lg transition-all duration-300 ${
+                        (feature.requiresAuth && username) || !feature.requiresAuth ? 'cursor-pointer opacity-100' : 'opacity-70'
+                      }`}
+                      onClick={() => handleFeatureClick(feature.title)}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className="mb-4">{feature.icon}</div>
+                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                        <p className="text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="mb-24">
+          <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger>{faq.question}</AccordionTrigger>
+                  <AccordionContent>{faq.answer}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+
+        {/* Contact Section */}
+        <section className="mb-24">
+          <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
+          <div className="max-w-2xl mx-auto">
+            <form onSubmit={handleContactSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-2">
+                  Name
+                </label>
+                <Input id="name" required placeholder="Your name" />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  Email
+                </label>
+                <Input id="email" type="email" required placeholder="your@email.com" />
+              </div>
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium mb-2">
+                  Message
+                </label>
+                <Textarea
+                  id="message"
+                  required
+                  placeholder="Your message"
+                  className="min-h-[150px]"
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Send Message
+              </Button>
+            </form>
           </div>
         </section>
       </main>
