@@ -1,4 +1,3 @@
-<lov-code>
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, FileText, Clock, Users } from "lucide-react";
@@ -197,4 +196,25 @@ const Landing = () => {
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleContactSubmit} className="space-y-6
+            <form onSubmit={handleContactSubmit} className="space-y-6">
+              <div>
+                <Input placeholder="Your Name" required />
+              </div>
+              <div>
+                <Input type="email" placeholder="Your Email" required />
+              </div>
+              <div>
+                <Textarea placeholder="Your Message" required />
+              </div>
+              <Button type="submit" className="w-full">
+                Send Message
+              </Button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default Landing;
