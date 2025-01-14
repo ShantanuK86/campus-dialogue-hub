@@ -1,3 +1,4 @@
+<lov-code>
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, FileText, Clock, Users } from "lucide-react";
@@ -118,12 +119,20 @@ const Landing = () => {
       <main className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <section className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-6">
-            Welcome to Our College Community Hub
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Connect, collaborate, and grow with your college community
-          </p>
+          {username ? (
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-primary">
+                Welcome back, {username}!
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                Ready to continue learning and sharing?
+              </p>
+            </div>
+          ) : (
+            <h1 className="text-4xl font-bold mb-6">
+              Welcome to Our College Community Hub
+            </h1>
+          )}
           {!username && (
             <>
               <Button
@@ -188,39 +197,4 @@ const Landing = () => {
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleContactSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-2">
-                  Name
-                </label>
-                <Input id="name" required placeholder="Your name" />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-2">
-                  Email
-                </label>
-                <Input id="email" type="email" required placeholder="your@email.com" />
-              </div>
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium mb-2">
-                  Message
-                </label>
-                <Textarea
-                  id="message"
-                  required
-                  placeholder="Your message"
-                  className="min-h-[150px]"
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Send Message
-              </Button>
-            </form>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-};
-
-export default Landing;
+            <form onSubmit={handleContactSubmit} className="space-y-6

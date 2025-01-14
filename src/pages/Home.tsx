@@ -31,7 +31,6 @@ const Home = () => {
   const [newPost, setNewPost] = useState({
     title: "",
     content: "",
-    preview: "",
   });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -68,6 +67,14 @@ const Home = () => {
     setPosts(posts);
   };
 
+  const generatePreview = (content: string) => {
+    const words = content.split(' ');
+    if (words.length > 50) { // Show first 50 words as preview
+      return words.slice(0, 50).join(' ') + '...';
+    }
+    return content;
+  };
+
   const handleCreatePost = async () => {
     const { data: session } = await supabase.auth.getSession();
     
@@ -81,10 +88,12 @@ const Home = () => {
       return;
     }
 
+    const preview = generatePreview(newPost.content);
+
     const { error } = await supabase.from("posts").insert({
       title: newPost.title,
       content: newPost.content,
-      preview: newPost.preview,
+      preview: preview,
       author_id: session.session.user.id,
     });
 
@@ -102,7 +111,7 @@ const Home = () => {
       description: "Post created successfully",
     });
 
-    setNewPost({ title: "", content: "", preview: "" });
+    setNewPost({ title: "", content: "" });
     setShowCreateForm(false);
     fetchPosts();
   };
@@ -132,14 +141,6 @@ const Home = () => {
               value={newPost.title}
               onChange={(e) =>
                 setNewPost({ ...newPost, title: e.target.value })
-              }
-              className="bg-background text-foreground"
-            />
-            <Textarea
-              placeholder="Preview (short description)"
-              value={newPost.preview}
-              onChange={(e) =>
-                setNewPost({ ...newPost, preview: e.target.value })
               }
               className="bg-background text-foreground"
             />
