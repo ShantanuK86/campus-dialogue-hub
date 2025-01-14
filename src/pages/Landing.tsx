@@ -26,9 +26,11 @@ const Landing = () => {
     getProfile();
   }, []);
 
-  const handleForumClick = () => {
-    if (username) {
+  const handleFeatureClick = (feature: string) => {
+    if (feature === 'Forums' && username) {
       navigate('/home');
+    } else {
+      navigate(`/${feature.toLowerCase()}`);
     }
   };
 
@@ -36,24 +38,27 @@ const Landing = () => {
     {
       icon: <MessageCircle className="h-8 w-8 text-primary" />,
       title: "Real-time Chat",
-      description: "Connect with classmates instantly"
+      description: "Connect with classmates instantly",
+      path: "chat"
     },
     {
       icon: <Users className="h-8 w-8 text-primary" />,
       title: "Study Groups",
-      description: "Form and join study groups"
+      description: "Form and join study groups",
+      path: "groups"
     },
     {
       icon: <FileText className="h-8 w-8 text-primary" />,
       title: "Forums",
       description: "Engage in academic discussions and share knowledge",
-      onClick: handleForumClick,
-      active: !!username
+      path: "forums",
+      requiresAuth: true
     },
     {
       icon: <Clock className="h-8 w-8 text-primary" />,
       title: "Event Planning",
-      description: "Schedule and manage study sessions"
+      description: "Schedule and manage study sessions",
+      path: "events"
     }
   ];
 
@@ -85,14 +90,14 @@ const Landing = () => {
 
         <section>
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card 
                 key={index} 
                 className={`p-6 bg-card hover:shadow-lg transition-shadow ${
-                  feature.active ? 'cursor-pointer' : ''
+                  (feature.requiresAuth && username) || !feature.requiresAuth ? 'cursor-pointer' : 'opacity-70'
                 }`}
-                onClick={feature.onClick}
+                onClick={() => handleFeatureClick(feature.title)}
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-4">{feature.icon}</div>

@@ -13,6 +13,9 @@ import Questions from "./pages/Questions";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import PostDetails from "./pages/PostDetails";
+import Chat from "./pages/Chat";
+import Groups from "./pages/Groups";
+import Events from "./pages/Events";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +38,9 @@ const AppContent = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/post/:id" element={<PostDetails />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/events" element={<Events />} />
             </Routes>
           </main>
         </div>

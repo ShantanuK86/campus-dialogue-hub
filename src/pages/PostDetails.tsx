@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowBigUp, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Comments } from "@/components/Comments";
@@ -15,36 +15,39 @@ interface Post {
   created_at: string;
   profiles: {
     username: string;
-    avatar_url: string;
   };
+  posts_tags: {
+    tags: {
+      name: string;
+    };
+  }[];
 }
 
 const PostDetails = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [hasVoted, setHasVoted] = useState(false);
+  const [userVote, setUserVote] = useState<boolean | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPost();
     checkUserVote();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
   }, [id]);
 
   const fetchPost = async () => {
     if (!id) return;
 
-    const { data, error } = await supabase
+    const { data: post, error } = await supabase
       .from("posts")
       .select(`
         *,
         profiles (
-          username,
-          avatar_url
+          username
+        ),
+        posts_tags (
+          tags (
+            name
+          )
         )
       `)
       .eq("id", id)
@@ -59,104 +62,92 @@ const PostDetails = () => {
       return;
     }
 
-    setPost(data);
+    setPost(post);
   };
 
   const checkUserVote = async () => {
     const { data: session } = await supabase.auth.getSession();
-    if (!session.session?.user) return;
+    if (!session?.session?.user || !id) return;
 
-    const { data } = await supabase
+    const { data: vote } = await supabase
       .from("user_votes")
-      .select()
+      .select("*")
       .eq("post_id", id)
       .eq("user_id", session.session.user.id)
-      .single();
+      .maybeSingle();
 
-    setHasVoted(!!data);
+    setUserVote(!!vote);
   };
 
   const handleVote = async () => {
-    if (!user) {
-      navigate("/login");
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please sign in to vote on posts",
+      });
       return;
     }
 
-    try {
-      if (hasVoted) {
-        // Remove vote
-        await supabase
-          .from("user_votes")
-          .delete()
-          .eq("post_id", id)
-          .eq("user_id", user.id);
+    const { error: voteError } = await supabase.rpc("handle_vote", {
+      post_id: id,
+      user_id: session.session.user.id,
+    });
 
-        await supabase
-          .from("posts")
-          .update({ votes: (post?.votes || 0) - 1 })
-          .eq("id", id);
-
-        setHasVoted(false);
-      } else {
-        // Add vote
-        await supabase
-          .from("user_votes")
-          .insert({ post_id: id, user_id: user.id });
-
-        await supabase
-          .from("posts")
-          .update({ votes: (post?.votes || 0) + 1 })
-          .eq("id", id);
-
-        setHasVoted(true);
-      }
-
-      fetchPost();
-    } catch (error: any) {
+    if (voteError) {
       toast({
         variant: "destructive",
-        title: "Error updating vote",
-        description: error.message,
+        title: "Error voting on post",
+        description: voteError.message,
       });
+      return;
     }
+
+    setUserVote(!userVote);
+    fetchPost();
   };
 
-  if (!post) return <div>Loading...</div>;
+  if (!post) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex flex-col">
-                <h1 className="text-2xl font-bold">{post.title}</h1>
-                <span className="text-sm text-muted-foreground">
-                  Posted by {post.profiles.username}
-                </span>
-              </div>
-            </div>
+    <div className="container py-8">
+      <div className="bg-card rounded-lg p-6 mb-8">
+        <div className="flex items-start gap-4">
+          <div className="flex flex-col items-center gap-2">
             <Button
-              variant={hasVoted ? "default" : "outline"}
-              className="flex items-center gap-2"
+              variant="ghost"
+              size="sm"
               onClick={handleVote}
+              className={userVote ? "text-primary" : ""}
             >
-              <ArrowBigUp className="h-5 w-5" />
-              <span>{post.votes}</span>
+              ▲
             </Button>
+            <span className="text-lg font-semibold">{post.votes}</span>
           </div>
-          <div className="prose max-w-none mb-6">
-            <p>{post.content}</p>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4 mr-2" />
-            <span>
-              {format(new Date(post.created_at), "MMM d, yyyy")}
-            </span>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              <span>Posted by {post.profiles.username}</span>
+              <span>•</span>
+              <span>{format(new Date(post.created_at), "PPp")}</span>
+            </div>
+            <div className="prose dark:prose-invert max-w-none mb-4">
+              {post.content}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {post.posts_tags.map((pt, index) => (
+                <Badge key={index} variant="secondary">
+                  {pt.tags.name}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
-        <Comments postId={post.id} />
       </div>
+      <Comments postId={post.id} />
     </div>
   );
 };
