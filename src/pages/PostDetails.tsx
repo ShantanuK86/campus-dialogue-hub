@@ -13,7 +13,7 @@ interface Post {
   content: string;
   votes: number;
   created_at: string;
-  profiles!posts_author_id_fkey: {
+  author: {
     username: string;
   };
   posts_tags: {
@@ -41,7 +41,7 @@ const PostDetails = () => {
       .from("posts")
       .select(`
         *,
-        profiles!posts_author_id_fkey (
+        author:profiles!posts_author_id_fkey (
           username
         ),
         posts_tags (
@@ -130,7 +130,7 @@ const PostDetails = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <span>Posted by {post.profiles!posts_author_id_fkey.username}</span>
+              <span>Posted by {post.author.username}</span>
               <span>•</span>
               <span>{format(new Date(post.created_at), "PPp")}</span>
             </div>
