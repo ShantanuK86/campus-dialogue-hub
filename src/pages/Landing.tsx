@@ -21,8 +21,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
+const ComingSoonPage = ({ title }: { title: string }) => (
+  <div className="min-h-screen flex items-center justify-center">
+    <h1 className="text-4xl font-bold text-primary">{title} - Coming Soon...</h1>
+  </div>
+);
+
 const Landing = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -30,6 +37,7 @@ const Landing = () => {
     const getProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        setUser(session.user);
         const { data: profile } = await supabase
           .from('profiles')
           .select('username')
@@ -41,6 +49,23 @@ const Landing = () => {
     };
 
     getProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+        setUsername(profile?.username);
+      } else {
+        setUser(null);
+        setUsername(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const features = [
@@ -92,7 +117,7 @@ const Landing = () => {
 
   const handleFeatureClick = (feature: any) => {
     if (feature.title === 'Forums') {
-      if (username) {
+      if (user) {
         navigate('/home');
       } else {
         toast({
@@ -100,9 +125,9 @@ const Landing = () => {
           description: "Please login to access the forums.",
           variant: "destructive",
         });
+        navigate('/login');
       }
     } else {
-      // For all other features, navigate to their respective routes
       navigate(`/${feature.path}`);
     }
   };
@@ -160,9 +185,7 @@ const Landing = () => {
                 <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
                   <div className="p-1">
                     <Card 
-                      className={`p-6 bg-card hover:shadow-lg transition-all duration-300 ${
-                        (feature.requiresAuth && username) || !feature.requiresAuth ? 'cursor-pointer opacity-100' : 'opacity-70'
-                      }`}
+                      className="p-6 bg-card hover:shadow-lg transition-all duration-300 cursor-pointer"
                       onClick={() => handleFeatureClick(feature)}
                     >
                       <div className="flex flex-col items-center text-center">

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 interface Comment {
@@ -24,6 +24,22 @@ export const Comments = ({ postId }: CommentsProps) => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchComments();
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const fetchComments = async () => {
     const { data, error } = await supabase
       .from("comments")
@@ -43,15 +59,13 @@ export const Comments = ({ postId }: CommentsProps) => {
     setComments(data || []);
   };
 
-  useEffect(() => {
-    fetchComments();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-  }, []);
-
   const handleSubmitComment = async () => {
     if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please login to comment.",
+      });
       navigate("/login");
       return;
     }
@@ -97,17 +111,17 @@ export const Comments = ({ postId }: CommentsProps) => {
       
       <div className="space-y-2">
         <Textarea
-          placeholder="Write a comment..."
+          placeholder={user ? "Write a comment..." : "Please login to comment"}
           value={newComment}
-          onChange={(e) => {
-            if (!user) {
-              navigate("/login");
-              return;
-            }
-            setNewComment(e.target.value);
-          }}
+          onChange={(e) => setNewComment(e.target.value)}
+          disabled={!user}
         />
-        <Button onClick={handleSubmitComment}>Post Comment</Button>
+        <Button 
+          onClick={handleSubmitComment}
+          disabled={!user}
+        >
+          {user ? "Post Comment" : "Login to Comment"}
+        </Button>
       </div>
 
       <div className="space-y-4">
