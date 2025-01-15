@@ -32,40 +32,51 @@ const Landing = () => {
   const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState<string | null>(null);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const getProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
-        
-        setUsername(profile?.username);
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', session.user.id)
+            .single();
+          
+          setUsername(profile?.username);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    getProfile();
+    checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
-        setUsername(profile?.username);
-      } else {
+      if (event === 'SIGNED_IN') {
+        if (session?.user) {
+          setUser(session.user);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', session.user.id)
+            .single();
+          setUsername(profile?.username);
+        }
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setUsername(null);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const features = [
@@ -115,9 +126,10 @@ const Landing = () => {
     }
   ];
 
-  const handleFeatureClick = (feature: any) => {
+  const handleFeatureClick = async (feature: any) => {
     if (feature.title === 'Forums') {
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         navigate('/home');
       } else {
         toast({
@@ -141,27 +153,36 @@ const Landing = () => {
     (e.target as HTMLFormElement).reset();
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <section className="text-center mb-16">
-          {username ? (
+          {user ? (
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-primary">
-                Welcome back, {username}!
+                Welcome back, {username || user.email}!
               </h2>
               <p className="text-muted-foreground mt-2">
                 Ready to continue learning and sharing?
               </p>
+              <Button
+                size="lg"
+                onClick={() => navigate("/home")}
+                className="mt-4"
+              >
+                Go to Forums
+              </Button>
             </div>
           ) : (
-            <h1 className="text-4xl font-bold mb-6">
-              Welcome to Our College Community Hub
-            </h1>
-          )}
-          {!username && (
             <>
+              <h1 className="text-4xl font-bold mb-6">
+                Welcome to Our College Community Hub
+              </h1>
               <Button
                 size="lg"
                 onClick={() => navigate("/signup")}
@@ -176,7 +197,7 @@ const Landing = () => {
           )}
         </section>
 
-        {/* Features Section with Carousel */}
+        {/* Features Section */}
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
           <Carousel className="w-full max-w-5xl mx-auto">
@@ -203,7 +224,6 @@ const Landing = () => {
           </Carousel>
         </section>
 
-        {/* FAQ Section */}
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto">
