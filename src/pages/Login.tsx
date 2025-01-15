@@ -30,33 +30,46 @@ const Login = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user?.id) {
-        // Check if profile exists for the user
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', session.user.id)
-          .single();
+        setIsLoading(true); // Set loading when signed in
+        try {
+          // Check if profile exists for the user
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileError) {
+          if (profileError) {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Could not verify user profile.",
+            });
+            return;
+          }
+
+          if (!profile) {
+            toast({
+              variant: "destructive",
+              title: "Account not found",
+              description: "Please sign up first to create an account.",
+            });
+            navigate('/signup');
+            return;
+          }
+
+          navigate('/home');
+        } catch (error) {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Could not verify user profile.",
+            description: "An unexpected error occurred.",
           });
-          return;
+        } finally {
+          setIsLoading(false); // Reset loading state
         }
-
-        if (!profile) {
-          toast({
-            variant: "destructive",
-            title: "Account not found",
-            description: "Please sign up first to create an account.",
-          });
-          navigate('/signup');
-          return;
-        }
-
-        navigate('/home');
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoading(false); // Reset loading on sign out
       }
     });
 
@@ -155,7 +168,7 @@ const Login = () => {
               disabled={isLoading}
             >
               <Mail className="h-4 w-4" />
-              Continue with Email
+              {isLoading ? "Loading..." : "Continue with Email"}
             </Button>
           </form>
         </Form>
