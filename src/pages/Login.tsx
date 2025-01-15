@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Mail, Github } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -26,11 +26,50 @@ const Login = () => {
     },
   });
 
+  // Listen for authentication state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.id) {
+        // Check if profile exists for the user
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not verify user profile.",
+          });
+          return;
+        }
+
+        if (!profile) {
+          toast({
+            variant: "destructive",
+            title: "Account not found",
+            description: "Please sign up first to create an account.",
+          });
+          navigate('/signup');
+          return;
+        }
+
+        navigate('/home');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
   const handleEmailLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithOtp({
+      const { error: signInError } = await supabase.auth.signInWithOtp({
         email: values.email,
       });
 
@@ -43,49 +82,10 @@ const Login = () => {
         return;
       }
 
-      // Get the current session to verify the user
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user?.id) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not verify user session.",
-        });
-        return;
-      }
-
-      // Check if profile exists for the user
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not verify user profile.",
-        });
-        return;
-      }
-
-      if (!profile) {
-        toast({
-          variant: "destructive",
-          title: "Account not found",
-          description: "Please sign up first to create an account.",
-        });
-        navigate('/signup');
-        return;
-      }
-
       toast({
         title: "Check your email",
         description: "We've sent you a magic link to sign in.",
       });
-      navigate('/home');
     } catch (error) {
       toast({
         variant: "destructive",
