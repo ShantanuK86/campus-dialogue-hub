@@ -30,35 +30,46 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // First, check if the user exists in the profiles table
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!existingProfile) {
-        toast({
-          variant: "destructive",
-          title: "Account not found",
-          description: "Please sign up first to create an account.",
-        });
-        navigate('/signup');
-        return;
-      }
-
-      // If user exists, proceed with magic link login
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithOtp({
         email: values.email,
       });
-      
-      if (error) {
+
+      if (signInError) {
         toast({
           variant: "destructive",
           title: "Error signing in",
-          description: error.message,
+          description: signInError.message,
         });
-      } else {
+        return;
+      }
+
+      // Only check for profile after successful sign in
+      if (session?.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not verify user profile.",
+          });
+          return;
+        }
+
+        if (!profile) {
+          toast({
+            variant: "destructive",
+            title: "Account not found",
+            description: "Please sign up first to create an account.",
+          });
+          navigate('/signup');
+          return;
+        }
+
         toast({
           title: "Check your email",
           description: "We've sent you a magic link to sign in.",
@@ -77,15 +88,26 @@ const Login = () => {
   };
 
   const handleGithubLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-    });
-    
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      });
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error signing in",
+          description: error.message,
+        });
+      }
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
-        description: error.message,
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
       });
     }
   };
@@ -141,6 +163,7 @@ const Login = () => {
           variant="outline"
           className="w-full flex items-center gap-2 justify-center"
           onClick={handleGithubLogin}
+          disabled={isLoading}
         >
           <Github className="h-4 w-4" />
           Continue with GitHub
