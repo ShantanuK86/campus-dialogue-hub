@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -28,6 +28,7 @@ const PostDetails = () => {
   const [post, setPost] = useState<Post | null>(null);
   const [userVote, setUserVote] = useState<boolean | null>(null);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -80,32 +81,48 @@ const PostDetails = () => {
   };
 
   const handleVote = async () => {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    try {
+      setIsLoading(true);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "Please sign in to vote on posts",
+        });
+        return;
+      }
+
+      const { error } = await supabase.rpc('handle_vote', {
+        post_id: id,
+        user_id: session.session.user.id
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error voting on post",
+          description: error.message,
+        });
+        return;
+      }
+
+      setUserVote(!userVote);
+      await fetchPost();
+      
+      toast({
+        title: "Success",
+        description: userVote ? "Vote removed" : "Vote added",
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Authentication required",
-        description: "Please sign in to vote on posts",
+        title: "Error",
+        description: "An unexpected error occurred",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    const { error: voteError } = await supabase.rpc("handle_vote", {
-      post_id: id,
-      user_id: session.session.user.id,
-    });
-
-    if (voteError) {
-      toast({
-        variant: "destructive",
-        title: "Error voting on post",
-        description: voteError.message,
-      });
-      return;
-    }
-
-    setUserVote(!userVote);
-    fetchPost();
   };
 
   if (!post) {
@@ -121,6 +138,7 @@ const PostDetails = () => {
               variant="ghost"
               size="sm"
               onClick={handleVote}
+              disabled={isLoading}
               className={userVote ? "text-primary" : ""}
             >
               ▲

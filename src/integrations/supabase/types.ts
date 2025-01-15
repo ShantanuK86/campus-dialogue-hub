@@ -16,6 +16,7 @@ export type Database = {
           id: string
           post_id: string
           updated_at: string
+          user_email: string
           user_id: string
         }
         Insert: {
@@ -24,6 +25,7 @@ export type Database = {
           id?: string
           post_id: string
           updated_at?: string
+          user_email: string
           user_id: string
         }
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           id?: string
           post_id?: string
           updated_at?: string
+          user_email?: string
           user_id?: string
         }
         Relationships: [
@@ -202,7 +205,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      handle_vote: {
+        Args: {
+          post_id: string
+          user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
