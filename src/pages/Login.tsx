@@ -30,7 +30,7 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const { data: { session }, error: signInError } = await supabase.auth.signInWithOtp({
+      const { data, error: signInError } = await supabase.auth.signInWithOtp({
         email: values.email,
       });
 
@@ -43,39 +43,49 @@ const Login = () => {
         return;
       }
 
-      // Only check for profile after successful sign in
-      if (session?.user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', session.user.id)
-          .maybeSingle();
+      // Get the current session to verify the user
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (profileError) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not verify user profile.",
-          });
-          return;
-        }
-
-        if (!profile) {
-          toast({
-            variant: "destructive",
-            title: "Account not found",
-            description: "Please sign up first to create an account.",
-          });
-          navigate('/signup');
-          return;
-        }
-
+      if (sessionError || !session?.user?.id) {
         toast({
-          title: "Check your email",
-          description: "We've sent you a magic link to sign in.",
+          variant: "destructive",
+          title: "Error",
+          description: "Could not verify user session.",
         });
-        navigate('/home');
+        return;
       }
+
+      // Check if profile exists for the user
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not verify user profile.",
+        });
+        return;
+      }
+
+      if (!profile) {
+        toast({
+          variant: "destructive",
+          title: "Account not found",
+          description: "Please sign up first to create an account.",
+        });
+        navigate('/signup');
+        return;
+      }
+
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign in.",
+      });
+      navigate('/home');
     } catch (error) {
       toast({
         variant: "destructive",
