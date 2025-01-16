@@ -41,9 +41,9 @@ const Landing = () => {
       return;
     }
 
-    api.scrollNext({ loop: true });
+    api.scrollNext();
     const intervalId = setInterval(() => {
-      api.scrollNext({ loop: true });
+      api.scrollNext();
     }, 3000);
 
     return () => clearInterval(intervalId);
@@ -250,7 +250,7 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* Frequently Asked Questions Section */}
+        {/* FAQ and Contact sections */}
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto">
