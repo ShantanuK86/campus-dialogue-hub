@@ -12,7 +12,7 @@ interface Post {
   preview: string;
   votes: number;
   created_at: string;
-  profiles: {
+  author: {
     username: string;
   };
   posts_tags: {
@@ -38,12 +38,14 @@ const Questions = () => {
     const { data, error } = await supabase
       .from("posts")
       .select(`
-        *,
-        profiles (
-          username
-        ),
-        posts_tags (
-          tags (
+        id,
+        title,
+        preview,
+        votes,
+        created_at,
+        author:profiles!posts_author_id_fkey(username),
+        posts_tags(
+          tags(
             name
           )
         )
@@ -132,7 +134,7 @@ const Questions = () => {
               preview={post.preview}
               votes={post.votes}
               answers={post.posts_tags?.length || 0}
-              author={post.profiles.username}
+              author={post.author.username}
               role="student"
               timestamp={new Date(post.created_at).toLocaleDateString()}
               tags={post.posts_tags.map((pt) => pt.tags.name)}
