@@ -33,6 +33,20 @@ const Landing = () => {
   const [username, setUsername] = useState<string | null>(null);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [api, setApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.scrollNext({ loop: true });
+    const intervalId = setInterval(() => {
+      api.scrollNext({ loop: true });
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [api]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -198,32 +212,44 @@ const Landing = () => {
         </section>
 
         {/* Features Section */}
-        <section className="mb-24">
+        <section className="mb-24 relative">
           <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-          <Carousel className="w-full max-w-5xl mx-auto">
-            <CarouselContent className="-ml-1">
-              {features.map((feature, index) => (
-                <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
-                  <div className="p-1">
-                    <Card 
-                      className="p-6 bg-card hover:shadow-lg transition-all duration-300 cursor-pointer"
-                      onClick={() => handleFeatureClick(feature)}
-                    >
-                      <div className="flex flex-col items-center text-center">
-                        <div className="mb-4">{feature.icon}</div>
-                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                        <p className="text-muted-foreground">{feature.description}</p>
-                      </div>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
+          <div className="relative">
+            {/* Gradient overlays for fading effect */}
+            <div className="absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-background to-transparent z-10" />
+            <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-background to-transparent z-10" />
+            
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full max-w-5xl mx-auto"
+              setApi={setApi}
+            >
+              <CarouselContent className="-ml-1">
+                {[...features, ...features].map((feature, index) => (
+                  <CarouselItem key={index} className="pl-1 basis-full md:basis-1/2 lg:basis-1/3">
+                    <div className="p-1">
+                      <Card 
+                        className="p-6 bg-card hover:shadow-lg transition-all duration-300 cursor-pointer"
+                        onClick={() => handleFeatureClick(feature)}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="mb-4">{feature.icon}</div>
+                          <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                          <p className="text-muted-foreground">{feature.description}</p>
+                        </div>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
         </section>
 
+        {/* Frequently Asked Questions Section */}
         <section className="mb-24">
           <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto">
