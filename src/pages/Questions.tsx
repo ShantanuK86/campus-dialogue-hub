@@ -69,7 +69,7 @@ const Questions = () => {
         ...post,
         author: { email: post.author[0].email }, // Use email instead of username
         posts_tags: post.posts_tags?.map(pt => ({
-          tags: { name: pt.tags.name }
+          tags: pt.tags[0] // Take the first tag since it's an array
         })) || []
       }));
       setPosts(transformedPosts);
@@ -146,7 +146,7 @@ const Questions = () => {
             preview={post.preview}
             votes={post.votes}
             answers={post.posts_tags?.length || 0}
-            author={post.author.email} // Use email instead of username
+            author={post.author.email}
             role="student"
             timestamp={new Date(post.created_at).toLocaleDateString()}
             tags={post.posts_tags.map((pt) => pt.tags.name)}
