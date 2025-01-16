@@ -1,10 +1,10 @@
+import { useState, useEffect } from "react";
 import { PostCard } from "@/components/PostCard";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
 
 interface Post {
   id: string;
@@ -63,8 +63,15 @@ const Questions = () => {
       return;
     }
 
-    // Type assertion to ensure the data matches our Post interface
-    setPosts(data as Post[]);
+    if (data) {
+      // Transform the data to match our Post interface
+      const transformedPosts: Post[] = data.map(post => ({
+        ...post,
+        author: post.author[0], // Take the first author since it's returning an array
+        posts_tags: post.posts_tags || []
+      }));
+      setPosts(transformedPosts);
+    }
   };
 
   const fetchTags = async () => {
@@ -130,19 +137,18 @@ const Questions = () => {
       </div>
       <div className="space-y-6">
         {filteredPosts.map((post) => (
-          <div key={post.id}>
-            <PostCard
-              id={post.id}
-              title={post.title}
-              preview={post.preview}
-              votes={post.votes}
-              answers={post.posts_tags?.length || 0}
-              author={post.author.username}
-              role="student"
-              timestamp={new Date(post.created_at).toLocaleDateString()}
-              tags={post.posts_tags.map((pt) => pt.tags.name)}
-            />
-          </div>
+          <PostCard
+            key={post.id}
+            id={post.id}
+            title={post.title}
+            preview={post.preview}
+            votes={post.votes}
+            answers={post.posts_tags?.length || 0}
+            author={post.author.username}
+            role="student"
+            timestamp={new Date(post.created_at).toLocaleDateString()}
+            tags={post.posts_tags.map((pt) => pt.tags.name)}
+          />
         ))}
       </div>
     </div>
