@@ -13,7 +13,7 @@ interface Post {
   votes: number;
   created_at: string;
   author: {
-    email: string;
+    username: string;
   };
   posts_tags: {
     tags: {
@@ -44,7 +44,7 @@ const Questions = () => {
         votes,
         created_at,
         author:profiles!posts_author_id_fkey (
-          email
+          username
         ),
         posts_tags (
           tags (
@@ -64,10 +64,9 @@ const Questions = () => {
     }
 
     if (data) {
-      // Transform the data to match our Post interface
       const transformedPosts: Post[] = data.map(post => ({
         ...post,
-        author: { email: post.author[0].email }, // Use email instead of username
+        author: { username: post.author[0].username }, // Use username from profiles
         posts_tags: post.posts_tags?.map(pt => ({
           tags: pt.tags[0] // Take the first tag since it's an array
         })) || []
@@ -146,7 +145,7 @@ const Questions = () => {
             preview={post.preview}
             votes={post.votes}
             answers={post.posts_tags?.length || 0}
-            author={post.author.email}
+            author={post.author.username}
             role="student"
             timestamp={new Date(post.created_at).toLocaleDateString()}
             tags={post.posts_tags.map((pt) => pt.tags.name)}
