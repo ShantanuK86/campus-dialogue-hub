@@ -23,13 +23,14 @@ const AppContent = () => {
   const location = useLocation();
   const isAuthPage = ['/login', '/signup'].includes(location.pathname);
   const isLandingPage = location.pathname === '/';
-
+  const isForumPage = ['/home', '/questions'].includes(location.pathname) || location.pathname.startsWith('/post/');
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col">
         <AppBar />
         <div className="flex flex-1 pt-16">
-          {!isAuthPage && !isLandingPage && <AppSidebar />}
+          {!isAuthPage && !isLandingPage && isForumPage && <AppSidebar />}
           <main className="flex-1 bg-background">
             <Routes>
               <Route path="/" element={<Landing />} />
