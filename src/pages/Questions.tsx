@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import { PostCard } from "@/components/PostCard";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 interface Post {
   id: string;
@@ -43,9 +43,11 @@ const Questions = () => {
         preview,
         votes,
         created_at,
-        author:profiles!posts_author_id_fkey(username),
-        posts_tags(
-          tags(
+        author:profiles!posts_author_id_fkey (
+          username
+        ),
+        posts_tags (
+          tags (
             name
           )
         )
@@ -61,7 +63,8 @@ const Questions = () => {
       return;
     }
 
-    setPosts(data || []);
+    // Type assertion to ensure the data matches our Post interface
+    setPosts(data as Post[]);
   };
 
   const fetchTags = async () => {
