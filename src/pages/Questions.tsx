@@ -35,48 +35,56 @@ const Questions = () => {
   }, []);
 
   const fetchPosts = async () => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select(`
-        *,
-        profiles (
-          username
-        ),
-        posts_tags (
-          tags (
-            name
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select(`
+          *,
+          profiles (
+            username
+          ),
+          posts_tags (
+            tags (
+              name
+            )
           )
-        )
-      `)
-      .order('created_at', { ascending: false });
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
       toast({
         variant: "destructive",
         title: "Error fetching posts",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Failed to fetch posts",
       });
-      return;
     }
-
-    setPosts(data || []);
   };
 
   const fetchTags = async () => {
-    const { data, error } = await supabase
-      .from("tags")
-      .select("name");
+    try {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("name");
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      setAllTags(data.map(tag => tag.name));
+    } catch (error) {
+      console.error('Error fetching tags:', error);
       toast({
         variant: "destructive",
         title: "Error fetching tags",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Failed to fetch tags",
       });
-      return;
     }
-
-    setAllTags(data.map(tag => tag.name));
   };
 
   const toggleTag = (tag: string) => {
