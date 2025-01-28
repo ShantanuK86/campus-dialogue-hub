@@ -40,7 +40,7 @@ const Questions = () => {
         .from("posts")
         .select(`
           *,
-          profiles (
+          profiles!posts_author_id_fkey (
             username
           ),
           posts_tags (
