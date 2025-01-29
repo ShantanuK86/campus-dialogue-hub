@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mail, Github } from "lucide-react";
+import { Mail, Github, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import * as z from "zod";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const Login = () => {
@@ -23,6 +24,7 @@ const Login = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
+      password: "",
     },
   });
 
@@ -81,8 +83,9 @@ const Login = () => {
   const handleEmailLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithOtp({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: values.email,
+        password: values.password,
       });
 
       if (signInError) {
@@ -94,10 +97,7 @@ const Login = () => {
         return;
       }
 
-      toast({
-        title: "Check your email",
-        description: "We've sent you a magic link to sign in.",
-      });
+      // Successful login will be handled by the auth state change listener
     } catch (error) {
       toast({
         variant: "destructive",
@@ -167,12 +167,33 @@ const Login = () => {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                          placeholder="Password" 
+                          type="password" 
+                          className="pl-10 h-12 text-base"
+                          {...field}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 type="submit"
                 className="w-full h-12 text-base bg-primary hover:bg-primary/90"
                 disabled={isLoading}
               >
-                {isLoading ? "Loading..." : "Next"}
+                {isLoading ? "Loading..." : "Sign in"}
               </Button>
             </form>
           </Form>
