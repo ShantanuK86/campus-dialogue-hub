@@ -148,11 +148,11 @@ const Signup = () => {
           </p>
         </div>
       </div>
-      <div className="hidden lg:block lg:flex-1 bg-[#C84E2C] p-8">
+      <div className="hidden lg:block lg:flex-1 bg-secondary p-8">
         <img
-          src="/lovable-uploads/66b8637e-5b8a-4b66-a0ed-a8f2bff12a2c.png"
-          alt="Signup illustration"
-          className="w-full h-full object-contain"
+          src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
+          alt="College students collaborating at a study table with laptops"
+          className="w-full h-full object-cover rounded-xl"
         />
       </div>
     </div>
