@@ -203,10 +203,10 @@ const Login = () => {
           </p>
         </div>
       </div>
-      <div className="hidden lg:block lg:flex-1 bg-[#C84E2C] p-8">
+      <div className="hidden lg:block lg:flex-1 bg-[#1a1f2c] p-8">
         <img
-          src="/lovable-uploads/66b8637e-5b8a-4b66-a0ed-a8f2bff12a2c.png"
-          alt="Login illustration"
+          src="/illustration.svg"
+          alt="College students studying and collaborating"
           className="w-full h-full object-contain"
         />
       </div>
