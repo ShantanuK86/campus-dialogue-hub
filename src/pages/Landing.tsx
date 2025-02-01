@@ -181,7 +181,7 @@ const Landing = () => {
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: 'url(/lovable-uploads/a69c923c-4a7d-455d-ab5e-f96273a8591b.png)',
+              backgroundImage: 'url(/lovable-uploads/149611f6-309e-4d6a-b7cc-136de0cc8a8b.png)',
             }}
           >
             <div className="absolute inset-0 bg-black/50" /> {/* Dark overlay */}
