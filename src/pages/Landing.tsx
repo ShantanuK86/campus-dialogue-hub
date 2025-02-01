@@ -174,42 +174,58 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 py-16">
+      <main className="container mx-auto px-4">
         {/* Hero Section */}
-        <section className="text-center mb-16">
-          {user ? (
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-primary">
-                Welcome back, {username || user.email}!
-              </h2>
-              <p className="text-muted-foreground mt-2">
-                Ready to continue learning and sharing?
-              </p>
-              <Button
-                size="lg"
-                onClick={() => navigate("/home")}
-                className="mt-4"
-              >
-                Go to Forums
-              </Button>
-            </div>
-          ) : (
-            <>
-              <h1 className="text-4xl font-bold mb-6">
-                Welcome to Our College Community Hub
-              </h1>
-              <Button
-                size="lg"
-                onClick={() => navigate("/signup")}
-                className="mb-4"
-              >
-                Get Started
-              </Button>
-              <p className="text-sm text-muted-foreground">
-                By signing up, you agree to our Terms of Service
-              </p>
-            </>
-          )}
+        <section className="relative h-[80vh] -mx-4 flex items-center justify-center mb-24">
+          {/* Background Image with Overlay */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: 'url(/lovable-uploads/a69c923c-4a7d-455d-ab5e-f96273a8591b.png)',
+            }}
+          >
+            <div className="absolute inset-0 bg-black/50" /> {/* Dark overlay */}
+          </div>
+          
+          {/* Content */}
+          <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
+            {user ? (
+              <div className="space-y-6">
+                <h2 className="text-5xl font-serif font-semibold">
+                  Welcome back, {username || user.email}!
+                </h2>
+                <p className="text-xl text-gray-200 mt-4">
+                  Ready to continue learning and sharing?
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/home")}
+                  className="mt-8 bg-white text-gray-900 hover:bg-gray-100"
+                >
+                  Go to Forums
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <h1 className="text-6xl font-serif font-semibold mb-6">
+                  Welcome To CollegeStack
+                </h1>
+                <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+                  Join our vibrant community of learners, share knowledge, and grow together
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/signup")}
+                  className="mt-8 bg-white text-gray-900 hover:bg-gray-100"
+                >
+                  Get Started
+                </Button>
+                <p className="text-sm text-gray-300 mt-4">
+                  By signing up, you agree to our Terms of Service
+                </p>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Features Section */}
