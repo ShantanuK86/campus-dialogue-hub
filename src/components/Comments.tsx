@@ -11,6 +11,9 @@ interface Comment {
   user_id: string;
   user_email: string;
   created_at: string;
+  profiles: {
+    username: string;
+  };
 }
 
 interface CommentsProps {
@@ -43,7 +46,12 @@ export const Comments = ({ postId }: CommentsProps) => {
   const fetchComments = async () => {
     const { data, error } = await supabase
       .from("comments")
-      .select("*")
+      .select(`
+        *,
+        profiles:user_id (
+          username
+        )
+      `)
       .eq("post_id", postId)
       .order("created_at", { ascending: false });
 
@@ -131,7 +139,7 @@ export const Comments = ({ postId }: CommentsProps) => {
             className="rounded-lg border p-4 space-y-2"
           >
             <div className="flex justify-between items-center">
-              <span className="font-medium">{comment.user_email}</span>
+              <span className="font-medium">{comment.profiles?.username || 'Anonymous'}</span>
               <span className="text-sm text-gray-500">
                 {new Date(comment.created_at).toLocaleDateString()}
               </span>
