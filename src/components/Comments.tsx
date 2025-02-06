@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ interface Comment {
   created_at: string;
   profiles: {
     username: string;
+    nickname: string;
   };
 }
 
@@ -49,7 +51,8 @@ export const Comments = ({ postId }: CommentsProps) => {
       .select(`
         *,
         profiles:user_id (
-          username
+          username,
+          nickname
         )
       `)
       .eq("post_id", postId)
@@ -139,7 +142,9 @@ export const Comments = ({ postId }: CommentsProps) => {
             className="rounded-lg border p-4 space-y-2"
           >
             <div className="flex justify-between items-center">
-              <span className="font-medium">{comment.profiles?.username || 'Anonymous'}</span>
+              <span className="font-medium">
+                {comment.profiles?.nickname || comment.profiles?.username || 'Anonymous'}
+              </span>
               <span className="text-sm text-gray-500">
                 {new Date(comment.created_at).toLocaleDateString()}
               </span>
